@@ -1,0 +1,223 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  directUrl = env("DIRECT_DATABASE_URL")
+}
+
+enum RoomStatus {
+  LOBBY
+  IN_GAME
+  FINISHED
+  ABANDONED
+}
+
+enum GameStatus {
+  WAITING
+  IN_PROGRESS
+  FINISHED
+  INTERRUPTED
+}
+
+enum RoundStatus {
+  PENDING
+  ACTIVE
+  REVEALED
+  COMPLETED
+  SKIPPED
+}
+
+enum VideoSourceType {
+  YOUTUBE_LIKES
+  YOUTUBE_PLAYLIST
+  YOUTUBE_CHANNEL
+  MANUAL
+}
+
+model User {
+  id               String        @id @default(cuid())
+  name             String?
+  email            String?       @unique
+  emailVerified    DateTime?
+  image            String?
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+  accounts         Account[]
+  sessions         Session[]
+  hostedRooms      Room[]        @relation("RoomHost")
+  roomMemberships  RoomPlayer[]
+  createdGames     Game[]        @relation("GameCreator")
+}
+
+model Account {
+  id                 String  @id @default(cuid())
+  userId             String
+  type               String
+  provider           String
+  providerAccountId  String
+  refresh_token      String? @db.Text
+  access_token       String? @db.Text
+  expires_at         Int?
+  token_type         String?
+  scope              String?
+  id_token           String? @db.Text
+  session_state      String?
+  refresh_token_expires_in Int?
+  user               User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+model Room {
+  id         String       @id @default(cuid())
+  code       String       @unique
+  hostUserId String
+  status     RoomStatus   @default(LOBBY)
+  settings   Json
+  createdAt  DateTime     @default(now())
+  updatedAt  DateTime     @updatedAt
+  hostUser   User         @relation("RoomHost", fields: [hostUserId], references: [id], onDelete: Restrict)
+  players    RoomPlayer[]
+  games      Game[]
+  videos     VideoEntry[]
+}
+
+model RoomPlayer {
+  id                    String       @id @default(cuid())
+  roomId                String
+  userId                String
+  displayNameSnapshot   String
+  avatarUrlSnapshot     String?
+  youtubeLikesImportCursor Int      @default(0)
+  isReady               Boolean      @default(false)
+  isConnected           Boolean      @default(true)
+  socketId              String?
+  currentScore          Int          @default(0)
+  currentCorrectAnswers Int          @default(0)
+  joinedAt              DateTime     @default(now())
+  lastSeenAt            DateTime     @default(now())
+  disconnectedAt        DateTime?
+  room                  Room         @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  user                  User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  ownedVideos           VideoEntry[]
+  answers               Answer[]     @relation("AnswerPlayer")
+  guessedAnswers        Answer[]     @relation("AnswerGuess")
+  authoredRounds        Round[]      @relation("RoundSourcePlayer")
+  scoreSnapshots        ScoreSnapshot[]
+
+  @@unique([roomId, userId])
+  @@index([roomId])
+  @@index([userId])
+}
+
+model VideoEntry {
+  id             String          @id @default(cuid())
+  roomId         String
+  ownerPlayerId  String
+  youtubeVideoId String
+  title          String
+  thumbnailUrl   String
+  channelTitle   String
+  url            String
+  embedUrl       String
+  sourceType     VideoSourceType @default(YOUTUBE_CHANNEL)
+  importedAt     DateTime        @default(now())
+  isActive       Boolean         @default(true)
+  room           Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  ownerPlayer    RoomPlayer      @relation(fields: [ownerPlayerId], references: [id], onDelete: Cascade)
+  rounds         Round[]
+
+  @@unique([roomId, youtubeVideoId])
+  @@index([ownerPlayerId])
+}
+
+model Game {
+  id                 String          @id @default(cuid())
+  roomId             String
+  createdByUserId    String
+  status             GameStatus      @default(WAITING)
+  totalRounds        Int
+  currentRoundNumber Int             @default(0)
+  startedAt          DateTime?
+  endedAt            DateTime?
+  createdAt          DateTime        @default(now())
+  room               Room            @relation(fields: [roomId], references: [id], onDelete: Cascade)
+  createdBy          User            @relation("GameCreator", fields: [createdByUserId], references: [id], onDelete: Restrict)
+  rounds             Round[]
+  scoreSnapshots     ScoreSnapshot[]
+
+  @@index([roomId])
+}
+
+model Round {
+  id            String        @id @default(cuid())
+  gameId        String
+  number        Int
+  status        RoundStatus   @default(PENDING)
+  videoEntryId  String?
+  sourcePlayerId String?
+  startedAt     DateTime?
+  endsAt        DateTime?
+  revealedAt    DateTime?
+  revealEndsAt  DateTime?
+  completedAt   DateTime?
+  game          Game          @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  videoEntry    VideoEntry?   @relation(fields: [videoEntryId], references: [id], onDelete: SetNull)
+  sourcePlayer  RoomPlayer?   @relation("RoundSourcePlayer", fields: [sourcePlayerId], references: [id], onDelete: SetNull)
+  answers       Answer[]
+
+  @@unique([gameId, number])
+  @@index([gameId, status])
+}
+
+model Answer {
+  id              String      @id @default(cuid())
+  roundId         String
+  playerId        String
+  guessedPlayerId String
+  isCorrect       Boolean     @default(false)
+  responseTimeMs  Int?
+  pointsAwarded   Int         @default(0)
+  answeredAt      DateTime    @default(now())
+  round           Round       @relation(fields: [roundId], references: [id], onDelete: Cascade)
+  player          RoomPlayer  @relation("AnswerPlayer", fields: [playerId], references: [id], onDelete: Cascade)
+  guessedPlayer   RoomPlayer  @relation("AnswerGuess", fields: [guessedPlayerId], references: [id], onDelete: Cascade)
+
+  @@unique([roundId, playerId])
+  @@index([playerId])
+}
+
+model ScoreSnapshot {
+  id             String      @id @default(cuid())
+  gameId         String
+  roundNumber    Int
+  playerId       String
+  score          Int
+  rank           Int
+  correctAnswers Int        @default(0)
+  createdAt      DateTime   @default(now())
+  game           Game       @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  player         RoomPlayer @relation(fields: [playerId], references: [id], onDelete: Cascade)
+
+  @@unique([gameId, roundNumber, playerId])
+  @@index([gameId, roundNumber])
+}

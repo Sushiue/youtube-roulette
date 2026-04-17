@@ -1,0 +1,15 @@
+.git
+.github
+node_modules
+**/node_modules
+.next
+**/.next
+dist
+**/dist
+coverage
+*.log
+.env
+.env.local
+.env.production
+.vercel
+postgres_data

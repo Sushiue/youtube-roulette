@@ -1,0 +1,48 @@
+{
+  "name": "youtube-roulette",
+  "version": "1.0.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "engines": {
+    "node": ">=20.0.0",
+    "npm": ">=10.0.0"
+  },
+  "scripts": {
+    "dev": "npm run build --workspace @youtube-roulette/shared && concurrently \"npm run dev --workspace @youtube-roulette/shared\" \"npm run dev --workspace @youtube-roulette/web\" \"npm run dev --workspace @youtube-roulette/realtime\"",
+    "dev:shared": "npm run dev --workspace @youtube-roulette/shared",
+    "dev:web": "npm run dev --workspace @youtube-roulette/web",
+    "dev:realtime": "npm run dev --workspace @youtube-roulette/realtime",
+    "build": "npm run build --workspace @youtube-roulette/shared && npm run build --workspace @youtube-roulette/web && npm run build --workspace @youtube-roulette/realtime",
+    "lint": "npm run lint --workspace @youtube-roulette/web && npm run lint --workspace @youtube-roulette/realtime",
+    "db:generate": "prisma generate",
+    "db:status": "prisma migrate status",
+    "db:migrate:create": "prisma migrate dev",
+    "db:migrate": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:push": "prisma db push",
+    "db:seed": "prisma db seed",
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:logs": "docker compose logs -f"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "concurrently": "^9.1.2",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.2",
+    "typescript": "^5.7.2"
+  },
+  "prisma": {
+    "seed": "tsx prisma/seed.ts"
+  },
+  "dependencies": {
+    "@sentry/nextjs": "^10.49.0",
+    "@sentry/node": "^10.49.0",
+    "@socket.io/redis-adapter": "^8.3.0",
+    "pino": "^10.3.1",
+    "redis": "^5.12.1"
+  }
+}

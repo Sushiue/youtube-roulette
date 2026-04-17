@@ -1,0 +1,2 @@
+ALTER TABLE "RoomPlayer"
+ADD COLUMN "youtubeLikesImportCursor" INTEGER NOT NULL DEFAULT 0;

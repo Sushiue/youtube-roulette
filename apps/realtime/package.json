@@ -10,11 +10,15 @@
     "lint": "tsc -p tsconfig.json --noEmit"
   },
   "dependencies": {
+    "@sentry/node": "^10.49.0",
+    "@socket.io/redis-adapter": "^8.3.0",
     "@prisma/client": "^5.22.0",
     "@youtube-roulette/shared": "*",
     "cors": "^2.8.5",
     "express": "^4.21.2",
     "jose": "^5.9.6",
+    "pino": "^10.3.1",
+    "redis": "^5.12.1",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {

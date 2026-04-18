@@ -1,8 +1,6 @@
 import cors from "cors";
 import express from "express";
 import { createServer } from "http";
-import { createClient } from "redis";
-import { createAdapter } from "@socket.io/redis-adapter";
 import { jwtVerify } from "jose";
 import { PrismaClient, Prisma, GameStatus, RoomStatus, RoundStatus } from "@prisma/client";
 import { Server } from "socket.io";
@@ -52,6 +50,11 @@ async function setupRedisAdapter() {
     logger.info("Redis adapter disabled for Socket.IO (missing REDIS_URL).");
     return;
   }
+
+  const [{ createClient }, { createAdapter }] = await Promise.all([
+    import("redis"),
+    import("@socket.io/redis-adapter")
+  ]);
 
   const pubClient = createClient({
     url: env.redisUrl

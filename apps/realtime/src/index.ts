@@ -16,10 +16,10 @@ import {
   type RoomSettings,
   validateRoomCanStart
 } from "@youtube-roulette/shared";
-import { env } from "./env";
-import { logger } from "./logger";
-import { setupObservability, Sentry } from "./observability";
-import { getRoomStateByCode } from "./room-state";
+import { env } from "./env.js";
+import { logger } from "./logger.js";
+import { setupObservability, Sentry } from "./observability.js";
+import { getRoomStateByCode } from "./room-state.js";
 
 const prisma = new PrismaClient();
 const app = express();

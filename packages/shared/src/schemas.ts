@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DEFAULT_ROOM_SETTINGS, MAX_PLAYERS, MIN_PLAYERS } from "./constants";
+import { DEFAULT_ROOM_SETTINGS, MAX_PLAYERS, MIN_PLAYERS } from "./constants.js";
 
 export const createRoomSchema = z.object({
   displayName: z.string().trim().min(2).max(32).optional()

@@ -1,6 +1,6 @@
 import * as Sentry from "@sentry/node";
-import { env } from "./env";
-import { logger } from "./logger";
+import { env } from "./env.js";
+import { logger } from "./logger.js";
 
 export function setupObservability() {
   if (!env.sentryDsn) {

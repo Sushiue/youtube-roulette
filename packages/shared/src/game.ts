@@ -1,5 +1,5 @@
-import { DEFAULT_ROOM_SETTINGS, MIN_PLAYERS, MIN_VIDEOS_PER_PLAYER } from "./constants";
-import type { DeckSelection, RoundDeckCandidate, RoomSettings } from "./types";
+import { DEFAULT_ROOM_SETTINGS, MIN_PLAYERS, MIN_VIDEOS_PER_PLAYER } from "./constants.js";
+import type { DeckSelection, RoundDeckCandidate, RoomSettings } from "./types.js";
 
 interface BuildDeckOptions {
   recentYoutubeVideoIds?: string[];

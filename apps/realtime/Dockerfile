@@ -1,4 +1,4 @@
-FROM node:20-alpine AS builder
+FROM node:20-bookworm-slim AS builder
 
 WORKDIR /app
 
@@ -9,11 +9,15 @@ RUN npm run db:generate
 RUN npm run build --workspace @youtube-roulette/shared
 RUN npm run build --workspace @youtube-roulette/realtime
 
-FROM node:20-alpine AS runner
+FROM node:20-bookworm-slim AS runner
 
 WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=4000
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends openssl ca-certificates \
+  && rm -rf /var/lib/apt/lists/*
 
 COPY package.json package-lock.json ./
 COPY apps/web/package.json ./apps/web/package.json

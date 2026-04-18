@@ -1,8 +1,8 @@
 "use client";
 
 import { useEffect } from "react";
-import * as Sentry from "@sentry/nextjs";
 import { Button } from "@/components/ui/button";
+import { loadOptionalSentry } from "@/lib/optional-sentry";
 
 export default function GlobalError({
   error,
@@ -12,7 +12,9 @@ export default function GlobalError({
   reset: () => void;
 }) {
   useEffect(() => {
-    Sentry.captureException(error);
+    void loadOptionalSentry().then((Sentry) => {
+      Sentry?.captureException?.(error);
+    });
   }, [error]);
 
   return (

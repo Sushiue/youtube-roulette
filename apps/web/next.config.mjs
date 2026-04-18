@@ -1,8 +1,9 @@
 import path from "path";
 import { fileURLToPath } from "url";
-import { withSentryConfig } from "@sentry/nextjs";
+import { createRequire } from "module";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const require = createRequire(import.meta.url);
 
 /** @type {import('next').NextConfig} */
 const nextConfig = {
@@ -33,6 +34,16 @@ const nextConfig = {
     ]
   }
 };
+
+let withSentryConfig = (config) => config;
+
+if (process.env.SENTRY_DSN || process.env.NEXT_PUBLIC_SENTRY_DSN) {
+  try {
+    ({ withSentryConfig } = require("@sentry/nextjs"));
+  } catch (error) {
+    console.warn("Sentry disabled for Next.js config because @sentry/nextjs is unavailable.", error);
+  }
+}
 
 export default withSentryConfig(nextConfig, {
   org: process.env.SENTRY_ORG,
